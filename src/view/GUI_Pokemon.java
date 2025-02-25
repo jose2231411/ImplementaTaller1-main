@@ -6,10 +6,13 @@ package view;
 
 import data.Pokemon;
 import java.awt.BorderLayout;
-import java.awt.Graphics;
-import javax.swing.JFrame;
+import java.io.FileWriter;
+import java.io.IOException;
 import model.BinarySearchTree;
 import javax.swing.JPanel;
+import model.BinarySearchTree.Node;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class GUI_Pokemon extends javax.swing.JFrame {
 //asAS
@@ -27,6 +30,71 @@ public class GUI_Pokemon extends javax.swing.JFrame {
         jPanel1.revalidate();
         jPanel1.repaint();
     }
+    // Método recursivo para convertir el árbol en un JSONObject
+
+    public JSONObject toJSON(Node node) {
+        if (node == null) {
+            return null;
+        }
+
+        JSONObject jsonNode = new JSONObject();
+        jsonNode.put("data", node.data);
+
+        // Recursivamente obtener el subárbol izquierdo y derecho
+        jsonNode.put("left", toJSON(node.left));
+        jsonNode.put("right", toJSON(node.right));
+
+        return jsonNode;
+    }
+
+    // Método para guardar el árbol en un archivo JSON
+    public void saveToJSON() {
+        JSONObject jsonTree = toJSON(arbol.raiz);
+        String filename = "Arbol.json";
+        try (FileWriter file = new FileWriter(filename)) {
+            file.write(jsonTree.toString(4)); // '4' es la indentación para hacer el archivo legible
+            System.out.println("Árbol guardado en: " + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    
+
+  
+    // Método estático para deserializar el árbol desde un JSONObject
+    public static <T extends Comparable<T>> BinarySearchTree<T>.Node<T> fromJSON(JSONObject jsonNode, Class<T> clazz) {
+        if (jsonNode == null) {
+            return null;
+        }
+
+        T data = (T) jsonNode.get("data");
+        BinarySearchTree<T>.Node<T> node;
+        node = new BinarySearchTree<T>().new Node<T>(data);
+
+        node.left = fromJSON(jsonNode.optJSONObject("left"), clazz);
+        node.right = fromJSON(jsonNode.optJSONObject("right"), clazz);
+
+        return node;
+    }
+
+    // Método para leer el árbol desde un archivo JSON y devolverlo como un BinarySearchTree
+    public static <T extends Comparable<T>> BinarySearchTree<T> loadFromJSON(Class<T> clazz) {
+        String filename = "Arbol.json";
+        try {
+            String content = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(filename)));
+            JSONObject jsonTree = new JSONObject(content);
+            BinarySearchTree<T> bst = new BinarySearchTree<>();
+            bst.raiz = fromJSON(jsonTree, clazz);
+            System.out.println("Árbol cargado desde: " + filename);
+            return bst;
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -46,7 +114,8 @@ public class GUI_Pokemon extends javax.swing.JFrame {
         jButton5 = new javax.swing.JButton();
         jButton6 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        jInternalFrame1 = new javax.swing.JInternalFrame();
+        jToggleButton1 = new javax.swing.JToggleButton();
+        jButton7 = new javax.swing.JButton();
 
         jTextField3.setText("jTextField3");
 
@@ -102,39 +171,30 @@ public class GUI_Pokemon extends javax.swing.JFrame {
             }
         });
 
-        jInternalFrame1.setVisible(true);
-
-        javax.swing.GroupLayout jInternalFrame1Layout = new javax.swing.GroupLayout(jInternalFrame1.getContentPane());
-        jInternalFrame1.getContentPane().setLayout(jInternalFrame1Layout);
-        jInternalFrame1Layout.setHorizontalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 347, Short.MAX_VALUE)
-        );
-        jInternalFrame1Layout.setVerticalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 135, Short.MAX_VALUE)
-        );
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(jInternalFrame1)
-                    .addContainerGap()))
+            .addGap(0, 374, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 183, Short.MAX_VALUE)
-            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(jInternalFrame1)
-                    .addContainerGap()))
         );
+
+        jToggleButton1.setText("Guardar");
+        jToggleButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton7.setText("Cargar");
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton7ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -162,6 +222,10 @@ public class GUI_Pokemon extends javax.swing.JFrame {
                                 .addComponent(jButton2)
                                 .addGap(17, 17, 17)
                                 .addComponent(jButton6)
+                                .addGap(18, 18, 18)
+                                .addComponent(jToggleButton1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton7)
                                 .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addComponent(jButton1)
@@ -197,7 +261,9 @@ public class GUI_Pokemon extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
-                    .addComponent(jButton6))
+                    .addComponent(jButton6)
+                    .addComponent(jToggleButton1)
+                    .addComponent(jButton7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(15, Short.MAX_VALUE))
@@ -242,6 +308,15 @@ public class GUI_Pokemon extends javax.swing.JFrame {
         panelArbol.revalidate();
         panelArbol.repaint();
     }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
+        saveToJSON();
+    }//GEN-LAST:event_jToggleButton1ActionPerformed
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+        BinarySearchTree<Pokemon> arbol = new BinarySearchTree<Pokemon>();
+        this.arbol = loadFromJSON(Pokemon.class);
+    }//GEN-LAST:event_jButton7ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -288,7 +363,7 @@ public class GUI_Pokemon extends javax.swing.JFrame {
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
-    private javax.swing.JInternalFrame jInternalFrame1;
+    private javax.swing.JButton jButton7;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
@@ -297,5 +372,6 @@ public class GUI_Pokemon extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
+    private javax.swing.JToggleButton jToggleButton1;
     // End of variables declaration//GEN-END:variables
 }

@@ -32,7 +32,7 @@ public class PanelArbol extends JPanel {
         if (x != null) {
             g.setColor(Color.blue);
             g.fillOval(m, y, 50, 40);
-            g.setColor(Color.gray);
+            g.setColor(Color.black);
             g.setFont(new Font("Arial", Font.BOLD, 20));
             String t = String.valueOf(x.data.toString());
             g.drawString(t, m + 20, y + 30);
